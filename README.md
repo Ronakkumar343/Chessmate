@@ -1,23 +1,63 @@
 # ♟️ Chessmate
 
-A sleek, modern web-based chess app powered by **Stockfish 18** — play locally with a friend, or challenge AI opponents across five difficulty tiers, with live move evaluation and ELO tracking.
+A chess project built in stages by **Ronak Kumar**: first a correct Python
+engine core, then a playable game and interface on top of it.
 
-> **Status: 🚧 in development.** This repo currently holds the project overview while the game is being built. Code will land here in stages — the feature list below is the build plan, not shipped software yet.
+> **Status: 🚧 in development.** The Python engine core (step 1 below) is in
+> the repo and tested. The web app, Stockfish integration and the rest of
+> the feature list are still the build plan, not shipped software yet.
 
-## 🎯 Planned features
+## ✅ What's built: Python engine core
 
-- **Local multiplayer** — two players, one screen
-- **AI opponents** — 5 difficulty tiers, from Easy to Ultimate, powered by Stockfish 18
-- **Live move evaluation** — see who's winning as the game unfolds
-- **ELO tracking** — watch your rating move game by game
-- **Bot Council** — real-time insights and commentary from the engine as you play
-- **Clean, modern UI** — built to feel fast and look sharp
+`chessmate/board.py` — pure standard-library Python, no dependencies:
 
-## 🛠️ Planned stack
+- **Board representation** — 64-square board with full FEN import/export
+- **Legal move generation** for every piece, including:
+  - castling (with the through-check / out-of-check / blocked rules)
+  - en passant (including the rare pinned en-passant case)
+  - pawn promotion to queen, rook, bishop or knight
+  - pins and king safety — a move that leaves your king in check is
+    never generated
+- **Move application** with castling rights, en-passant targets and the
+  halfmove/fullmove clocks kept up to date
 
-- Stockfish 18 (chess engine)
-- Web frontend — HTML / CSS / JavaScript
+Correctness is checked with `perft` node counts, the standard reference
+test for move generators. The engine reproduces the published counts
+exactly, including the dense "Kiwipete" test position
+(perft(3) = 97,862) and the Chess Programming Wiki en-passant position
+(perft(4) = 43,238).
+
+### Run the tests
+
+```bash
+python -m unittest discover -s tests -v
+```
+
+23 unit tests cover FEN round-trips, perft counts, castling rules,
+en passant (capture, pin legality), promotion and pinned pieces.
+
+### Use it
+
+```python
+from chessmate import Board
+
+board = Board()                       # standard starting position
+print(len(board.legal_moves()))       # 20
+board.make_move(board.find_move("e2e4"))
+print(board.fen())
+# rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1
+```
+
+## 🛣️ Build plan (next steps)
+
+1. ✅ Engine core: board + legal move generation
+2. ⬜ Check, checkmate and stalemate detection
+3. ⬜ Simple evaluation + minimax opponent, playable in the terminal
+4. ⬜ Web app: local multiplayer, Stockfish-powered AI opponents across
+   five difficulty tiers, live move evaluation, ELO tracking and
+   Bot Council commentary
 
 ## 👤 Author
 
-Built by **Ronak Kumar** — student developer from Mithi, Pakistan, working toward Computer Science at MIT.
+Built by **Ronak Kumar** — student developer from Mithi, Pakistan, working
+toward Computer Science at MIT.
