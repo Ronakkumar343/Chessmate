@@ -204,6 +204,41 @@ class Board:
         colour = colour or self.turn
         return self.is_square_attacked(self.king_square(colour), _opponent(colour))
 
+    # ------------------------------------------------------ game status
+    # These describe the SIDE TO MOVE, because legal_moves() is defined
+    # for the side to move. A position is checkmate when the side to move
+    # is in check and has no legal move; stalemate when it is not in
+    # check and has no legal move. Draw offers, the fifty-move rule and
+    # threefold repetition are NOT covered here — status() never claims
+    # a draw for them.
+
+    def is_checkmate(self) -> bool:
+        """True when the side to move is in check with no legal move."""
+        return self.is_in_check(self.turn) and not self.legal_moves()
+
+    def is_stalemate(self) -> bool:
+        """True when the side to move is not in check but has no legal move."""
+        return not self.is_in_check(self.turn) and not self.legal_moves()
+
+    def status(self) -> str:
+        """One of 'checkmate', 'stalemate', 'check' or 'ongoing'."""
+        if self.legal_moves():
+            return "check" if self.is_in_check(self.turn) else "ongoing"
+        return "checkmate" if self.is_in_check(self.turn) else "stalemate"
+
+    def outcome(self) -> Optional[str]:
+        """PGN-style result for a finished game, else None.
+
+        '1-0' when Black is checkmated, '0-1' when White is checkmated,
+        '1/2-1/2' for stalemate. Ongoing positions return None.
+        """
+        state = self.status()
+        if state == "checkmate":
+            return "0-1" if self.turn == "w" else "1-0"
+        if state == "stalemate":
+            return "1/2-1/2"
+        return None
+
     # ------------------------------------------------------- move making
 
     def make_move(self, move: Move) -> None:

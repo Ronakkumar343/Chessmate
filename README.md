@@ -20,6 +20,10 @@ engine core, then a playable game and interface on top of it.
     never generated
 - **Move application** with castling rights, en-passant targets and the
   halfmove/fullmove clocks kept up to date
+- **Game status** — `is_checkmate()`, `is_stalemate()`, `status()`
+  ('checkmate' / 'stalemate' / 'check' / 'ongoing') and `outcome()`
+  ('1-0' / '0-1' / '1/2-1/2' / None) for the side to move. Draw claims
+  from the fifty-move rule or repetition are not covered yet.
 
 Correctness is checked with `perft` node counts, the standard reference
 test for move generators. The engine reproduces the published counts
@@ -33,8 +37,9 @@ exactly, including the dense "Kiwipete" test position
 python -m unittest discover -s tests -v
 ```
 
-23 unit tests cover FEN round-trips, perft counts, castling rules,
-en passant (capture, pin legality), promotion and pinned pieces.
+29 unit tests cover FEN round-trips, perft counts, castling rules,
+en passant (capture, pin legality), promotion, pinned pieces, and game
+status (Fool's mate, Scholar's mate, classic stalemate).
 
 ### Use it
 
@@ -51,7 +56,7 @@ print(board.fen())
 ## 🛣️ Build plan (next steps)
 
 1. ✅ Engine core: board + legal move generation
-2. ⬜ Check, checkmate and stalemate detection
+2. ✅ Check, checkmate and stalemate detection
 3. ⬜ Simple evaluation + minimax opponent, playable in the terminal
 4. ⬜ Web app: local multiplayer, Stockfish-powered AI opponents across
    five difficulty tiers, live move evaluation, ELO tracking and

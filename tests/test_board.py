@@ -159,6 +159,57 @@ class CastlingTests(unittest.TestCase):
         self.assertEqual(board.castling, "Kkq")
 
 
+class GameStatusTests(unittest.TestCase):
+    def test_start_position_is_ongoing(self):
+        board = Board()
+        self.assertEqual(board.status(), "ongoing")
+        self.assertFalse(board.is_checkmate())
+        self.assertFalse(board.is_stalemate())
+        self.assertIsNone(board.outcome())
+
+    def test_check_is_not_mate_when_king_can_move(self):
+        # Black king on e8 is in check from the e2 rook but can step aside.
+        board = Board("4k3/8/8/8/8/8/4R3/4K3 b - - 0 1")
+        self.assertTrue(board.is_in_check("b"))
+        self.assertEqual(board.status(), "check")
+        self.assertFalse(board.is_checkmate())
+        self.assertIsNone(board.outcome())
+
+    def test_fools_mate_is_checkmate_for_side_to_move(self):
+        # 1. f3 e5 2. g4 Qh4# — the fastest checkmate in chess.
+        board = Board()
+        for uci in ("f2f3", "e7e5", "g2g4", "d8h4"):
+            play(board, uci)
+        self.assertEqual(board.turn, "w")
+        self.assertTrue(board.is_checkmate())
+        self.assertFalse(board.is_stalemate())
+        self.assertEqual(board.status(), "checkmate")
+        self.assertEqual(board.outcome(), "0-1")  # White is mated
+
+    def test_scholars_mate_position_is_checkmate(self):
+        # Qxf7# protected by the c4 bishop; Black to move has no legal move.
+        board = Board(
+            "r1bqkb1r/pppp1Qpp/2n2n2/4p3/2B1P3/8/PPPP1PPP/RNB1K1NR b KQkq - 0 4"
+        )
+        self.assertTrue(board.is_checkmate())
+        self.assertEqual(board.outcome(), "1-0")  # Black is mated
+
+    def test_classic_stalemate(self):
+        # Black king h8, White Qf7 + Kg6: not in check, nowhere to move.
+        board = Board("7k/5Q2/6K1/8/8/8/8/8 b - - 0 1")
+        self.assertFalse(board.is_in_check("b"))
+        self.assertTrue(board.is_stalemate())
+        self.assertFalse(board.is_checkmate())
+        self.assertEqual(board.status(), "stalemate")
+        self.assertEqual(board.outcome(), "1/2-1/2")
+
+    def test_stalemate_needs_no_legal_moves_not_just_no_king_moves(self):
+        # Same king trap, but Black has a pawn that can still move.
+        board = Board("7k/5Q1p/6K1/8/8/8/8/8 b - - 0 1")
+        self.assertFalse(board.is_stalemate())
+        self.assertEqual(board.status(), "ongoing")
+
+
 class MoveObjectTests(unittest.TestCase):
     def test_uci_round_trip(self):
         move = Move.from_uci("e7e8q")
